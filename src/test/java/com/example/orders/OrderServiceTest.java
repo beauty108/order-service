@@ -3,6 +3,7 @@ package com.example.orders;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.Map;
 
 
 import java.math.BigDecimal;
@@ -88,6 +89,58 @@ class OrderServiceTest{
 
         assertThrows(OrderNotCancellableException.class,
                 () -> service.cancelOrder(order.getId()));
+    }
+
+    //Stream test
+    @Test
+    void findByStatus_returnsOnlyMatchingOrders() {
+        Order paid = service.createOrder("Alice", items);
+        service.createOrder("Bob", items);
+        service.createOrder("Carol", items);
+        paid.setStatus(OrderStatus.PAID);
+
+        List<Order> result = service.findByStatus(OrderStatus.PAID);
+
+        assertEquals(1, result.size());
+        assertEquals(paid, result.get(0));
+    }
+
+    @Test
+    void totalRevenue_excludesCancelledOrders() {
+        service.createOrder("Alice", items);
+        Order toCancel = service.createOrder("Bob", items);
+        service.cancelOrder(toCancel.getId());
+
+        BigDecimal revenue = service.totalRevenue();
+
+        assertEquals(new BigDecimal("26.00"), revenue);
+    }
+
+    @Test
+    void orderByCustomer_groupsOrdersByName() {
+        service.createOrder("Alice", items);
+        service.createOrder("Alice", items);
+        service.createOrder("Bob", items);
+
+        Map<String, List<Order>> grouped = service.ordersByCustomer();
+
+        assertEquals(2, grouped.size());
+        assertEquals(2, grouped.get("Alice").size());
+        assertEquals(1, grouped.get("Bob").size());
+    }
+
+    @Test
+    void topCustomers_returnsHighestSpendersFirst() {
+        List<OrderItem> cheap = List.of(new OrderItem("Pen", 1, new BigDecimal("1.00")));
+        List<OrderItem> mid = List.of(new OrderItem("Book", 1, new BigDecimal("10.00")));
+
+        service.createOrder("Alice", cheap);   // 1.00
+        service.createOrder("Bob", items);     // 26.00
+        service.createOrder("Carol", mid);     // 10.00
+
+        List<String> top = service.topCustomers(2);
+
+        assertEquals(List.of("Bob", "Carol"), top);
     }
 
 
