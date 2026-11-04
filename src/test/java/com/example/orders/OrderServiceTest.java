@@ -143,5 +143,47 @@ class OrderServiceTest{
         assertEquals(List.of("Bob", "Carol"), top);
     }
 
+    @Test
+    void createOrder_throwsWhenCustomerNameBlank() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createOrder("   ", items));
+    }
+
+    @Test
+    void createOrder_throwsWhenCustomerNameNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createOrder(null, items));
+    }
+
+    @Test
+    void createOrder_throwsWhenItemsEmpty() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createOrder("Alice", List.of()));
+    }
+
+    @Test
+    void createOrder_throwsWhenQuantityNotPositive() {
+        List<OrderItem> bad = List.of(new OrderItem("Pen", 0, new BigDecimal("1.00")));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createOrder("Alice", bad));
+    }
+
+    @Test
+    void createOrder_throwsWhenPriceNegative() {
+        List<OrderItem> bad = List.of(new OrderItem("Pen", 1, new BigDecimal("-1.00")));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createOrder("Alice", bad));
+    }
+
+    @Test
+    void createOrder_doesNotStoreOrderWhenInvalid() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.createOrder("", items));
+
+        assertTrue(service.listAll().isEmpty());
+    }
+
 
 }
