@@ -37,5 +37,14 @@ public class App
         }catch (OrderNotCancellableException e){
             System.out.println("Caught: " + e.getMessage());
         }
+
+        // Stream queries
+        service.createOrder("Alice", List.of(new OrderItem("Monitor", 1, new BigDecimal("150.00"))));
+        service.createOrder("Bob", List.of(new OrderItem("Cable", 3, new BigDecimal("4.00"))));
+
+        System.out.println("CREATED orders: " + service.findByStatus(OrderStatus.CREATED).size());
+        System.out.println("Total revenue: " + service.totalRevenue());
+        System.out.println("Customers: " + service.ordersByCustomer().keySet());
+        System.out.println("Top 2 customers: " + service.topCustomers(2));
     }
 }

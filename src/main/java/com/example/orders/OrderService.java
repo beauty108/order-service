@@ -4,7 +4,8 @@ import java.util.*;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
-public class OrderService{
+public class OrderService
+{
     private final Map<UUID, Order> orders = new HashMap<>();
 
     public Order createOrder(String customerName, List<OrderItem> items){
