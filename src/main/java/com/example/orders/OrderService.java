@@ -9,6 +9,7 @@ public class OrderService
     private final Map<UUID, Order> orders = new HashMap<>();
 
     public Order createOrder(String customerName, List<OrderItem> items){
+        validate(customerName, items);
         Order order = new Order(customerName, items);
         orders.put(order.getId(), order);
         return order;
@@ -61,5 +62,24 @@ public class OrderService
                 .limit(n)
                 .map(Map.Entry::getKey)
                 .toList();
+    }
+
+    private void validate(String customerName, List<OrderItem> items) {
+        if (customerName == null || customerName.isBlank()) {
+            throw new IllegalArgumentException("Customer name must not be blank");
+        }
+        if (items == null || items.isEmpty()) {
+            throw new IllegalArgumentException("Order must contain at least one item");
+        }
+        for (OrderItem item : items) {
+            if (item.quantity() <= 0) {
+                throw new IllegalArgumentException(
+                        "Quantity must be positive for item: " + item.productName());
+            }
+            if (item.unitPrice() == null || item.unitPrice().signum() < 0) {
+                throw new IllegalArgumentException(
+                        "Unit price must not be negative for item: " + item.productName());
+            }
+        }
     }
 }
