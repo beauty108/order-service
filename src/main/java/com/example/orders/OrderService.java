@@ -1,6 +1,8 @@
 package com.example.orders;
 
 import java.util.*;
+import java.math.BigDecimal;
+import java.util.stream.Collectors;
 
 public class OrderService{
     private final Map<UUID, Order> orders = new HashMap<>();
@@ -26,5 +28,37 @@ public class OrderService{
             throw new OrderNotCancellableException(id, order.getStatus());
         }
         order.setStatus(OrderStatus.CANCELLED);
+    }
+
+    //streams
+    public List<Order> findByStatus(OrderStatus status){
+        return orders.values().stream()
+                .filter(o->o.getStatus() == status)
+                .toList();
+    }
+
+    public BigDecimal totalRevenue(){
+        return orders.values().stream()
+                .filter(o->o.getStatus() != OrderStatus.CANCELLED)
+                .map(Order::total)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public Map<String, List<Order>> ordersByCustomer(){
+        return orders.values().stream()
+                .collect(Collectors.groupingBy(Order::getCustomerName));
+    }
+
+    public List<String> topCustomers(int n){
+        return orders.values().stream()
+                .filter(o -> o.getStatus() != OrderStatus.CANCELLED)
+                .collect(Collectors.groupingBy(
+                        Order::getCustomerName,
+                        Collectors.reducing(BigDecimal.ZERO, Order::total, BigDecimal::add)))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .limit(n)
+                .map(Map.Entry::getKey)
+                .toList();
     }
 }
